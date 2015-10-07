@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+<head>
+
+    <script src="js/jquery-1.10.1.js"></script>
+
+    <title>Tic Tac Toe Game Interface
+    </title>
+
+
+    <style type="text/css" media="screen">
+        .cell {
+            width: 100px;
+            height: 100px;
+            float: left;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #ff9900;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+        (function ($) {
+            $(document).ready(function () {
+
+
+                $('#playGround').on('click', 'div.cell', function () {
+
+                    if ($('#playGround').attr('data-state') != 'close') {
+
+                        var cellIDofUsersMove = $(this).attr('id');
+
+                        var currentCellHtml = $('#' + cellIDofUsersMove).html();
+
+                        if (currentCellHtml != '') {
+                            alert('Invalid move');
+                        }
+                        else {
+                            $('#' + cellIDofUsersMove).html('<img src="img/circle.png" style="width: 100%; height: 100%" />');
+
+                            $.ajax({
+                                type: "GET",
+                                url: 'T3GameDriver.ashx?ReqCode=UserMove&CellID=' + cellIDofUsersMove,
+                                dataType: "jsonp",
+                                success: function (response) {
+
+                                    if (response.CurrentGameStatus == 'Over') {
+
+                                        $('#playGround').attr('data-state', 'close');
+                                        $('#btnStartGame').attr('data-state', 'start');
+                                        $('#btnStartGame').attr('value', 'Start New');
+
+                                        if (response.Winner == 'Computer') {
+                                            $('#' + response.CellIDofComputersMove).html('  <img src="img/cross.png" style="width: 100%; height: 100%" />');
+                                        }
+
+                                        if (response.Winner == 'Both') {
+                                            alert('Game tied');
+                                        }
+                                        else {
+                                            alert(response.Winner + ' Won');
+                                        }
+                                    }
+                                    else {
+                                        $('#' + response.CellIDofComputersMove).html('  <img src="img/cross.png" style="width: 100%; height: 100%" />');
+                                    }
+
+                                },
+                                error: function (xhr, status, error) {
+
+                                }
+                            });
+                        }
+                        return false;
+                    }
+                });
+
+
+                $('#btnStartGame').click(function () {
+                    var currentGameState = $(this).attr('data-state');
+
+                    if (currentGameState == 'start') {
+                        $(this).attr('data-state', 'stop');
+                        $(this).attr('value', 'Stop Game');
+                        $('#playGround').attr('data-state', 'open');
+                    }
+                    else {
+                        $(this).attr('data-state', 'start');
+                        $(this).attr('value', 'Start Game');
+                        $('#playGround').html('');
+                    }
+                    $.ajax({
+                        type: "GET",
+                        url: 'T3GameDriver.ashx?ReqCode=StateChanged&StateCode=' + currentGameState,
+                        dataType: "jsonp",
+                        success: function (response) {
+                            if (response.CurrentGameStatus == 'Runing') {
+                                $('#playGround').html('<div><div id="0" class="cell"></div><div id="1" class="cell"></div><div id="2" class="cell"></div></div><div><div id="3" class="cell"></div><div id="4" class="cell"></div><div id="5" class="cell"></div></div><div><div id="6" class="cell"></div><div id="7" class="cell"></div><div id="8" class="cell"></div></div>');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                        }
+                    });
+                });
+            });
+        })(jQuery);
+    </script>
+</head>
+
+
+<body>
+    <div>
+        <input type="button" id="btnStartGame" value="Start Game" data-state="start" />
+    </div>
+
+    <div id="playGround" style="width: 309px; height: 309px">
+    </div>
+
+</body>
+</html>
